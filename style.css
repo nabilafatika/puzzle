@@ -199,5 +199,14 @@ button:hover {
         width: 280px !important;  /* Kotak kepingan menyesuaikan lebar papan */
         min-height: 220px;
         max-height: 300px;
+        overflow-y: auto; 
     }
+
+    .puzzle-piece {
+    cursor: grab;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+    transition: transform 0.1s;
+    touch-action: none; /* TAMBAHKAN BARIS INI SUPAYA HP LANGSUNG MERESPONS SENTUHAN TANPA DITAHAN */
+}
+
 }

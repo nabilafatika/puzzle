@@ -307,6 +307,15 @@ uploadImage.addEventListener('change', (e) => {
     }
 });
 
+// ==========================================
+// PENGAKTIF DRAG AND DROP HALUS KHUSUS LAYAR HP (TOUCH)
+// ==========================================
+document.addEventListener('touchstart', function(e) {
+    if (e.target.classList.contains('puzzle-piece')) {
+        // Membantu mencegah perilaku scroll default saat menyentuh kepingan puzzle
+    }
+}, { passive: true });
+
 gridSizeSelect.addEventListener('change', initGame);
 restartBtn.addEventListener('click', initGame);
 
