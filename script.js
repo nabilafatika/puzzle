@@ -12,7 +12,10 @@ let currentImageSrc = imageSelect.value;
 let gridSize = parseInt(gridSizeSelect.value);
 let boardSize = window.innerWidth < 768 ? 280 : 320; 
 let pieceSize = boardSize / gridSize;
-let selectedShape = 'square'; // Variabel status bentuk default
+let selectedShape = 'square'; 
+
+// Variabel untuk menyimpan kepingan yang sedang dipilih di HP (Tap-to-Place)
+let activeSelectedPiece = null;
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -42,11 +45,10 @@ function playSound(type) {
 function drawJigsawPiecePath(ctx, x, y, size, topTab, rightTab, bottomTab, leftTab) {
     ctx.beginPath();
     let s = size;
-    let tabSize = s * 0.2; // Ukuran tonjolan
+    let tabSize = s * 0.2;
 
     ctx.moveTo(x, y);
 
-    // Sisi Atas
     if (topTab !== 0) {
         ctx.lineTo(x + s * 0.35, y);
         ctx.bezierCurveTo(x + s * 0.3, y - topTab * tabSize, x + s * 0.4, y - topTab * tabSize * 1.2, x + s * 0.5, y - topTab * tabSize * 1.2);
@@ -54,7 +56,6 @@ function drawJigsawPiecePath(ctx, x, y, size, topTab, rightTab, bottomTab, leftT
     }
     ctx.lineTo(x + s, y);
 
-    // Sisi Kanan
     if (rightTab !== 0) {
         ctx.lineTo(x + s, y + s * 0.35);
         ctx.bezierCurveTo(x + s + rightTab * tabSize, y + s * 0.3, x + s + rightTab * tabSize * 1.2, y + s * 0.4, x + s + rightTab * tabSize * 1.2, y + s * 0.5);
@@ -62,7 +63,6 @@ function drawJigsawPiecePath(ctx, x, y, size, topTab, rightTab, bottomTab, leftT
     }
     ctx.lineTo(x + s, y + s);
 
-    // Sisi Bawah
     if (bottomTab !== 0) {
         ctx.lineTo(x + s * 0.65, y + s);
         ctx.bezierCurveTo(x + s * 0.7, y + s + bottomTab * tabSize, x + s * 0.6, y + s + bottomTab * tabSize * 1.2, x + s * 0.5, y + s + bottomTab * tabSize * 1.2);
@@ -70,7 +70,6 @@ function drawJigsawPiecePath(ctx, x, y, size, topTab, rightTab, bottomTab, leftT
     }
     ctx.lineTo(x, y + s);
 
-    // Sisi Kiri
     if (leftTab !== 0) {
         ctx.lineTo(x, y + s * 0.65);
         ctx.bezierCurveTo(x - leftTab * tabSize, y + s * 0.7, x - leftTab * tabSize * 1.2, y + s * 0.6, x - leftTab * tabSize * 1.2, y + s * 0.5);
@@ -85,7 +84,9 @@ function initGame() {
     board.innerHTML = '';
     piecesArea.innerHTML = '';
     winPopup.style.display = 'none';
+    activeSelectedPiece = null; // Reset pilihan aktif
     gridSize = parseInt(gridSizeSelect.value);
+    boardSize = window.innerWidth < 768 ? 280 : 320;
     pieceSize = boardSize / gridSize;
 
     board.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
@@ -167,6 +168,21 @@ function initGame() {
                 
                 slot.addEventListener('dragover', (e) => e.preventDefault());
                 slot.addEventListener('drop', dropPiece);
+
+                // FITUR TAP-TO-PLACE KHUSUS HP (KLIK PADA SLOT)
+                slot.addEventListener('click', () => {
+                    if (window.innerWidth < 768 && activeSelectedPiece) {
+                        const existingPiece = Array.from(slot.children).find(child => child.classList.contains('puzzle-piece'));
+                        if (!existingPiece) {
+                            slot.appendChild(activeSelectedPiece);
+                            activeSelectedPiece.style.border = 'none';
+                            activeSelectedPiece = null;
+                            playSound('snap');
+                            checkWin();
+                        }
+                    }
+                });
+
                 board.appendChild(slot);
 
                 // 2. Buat Kepingan Puzzle
@@ -215,8 +231,21 @@ function initGame() {
                     piece.appendChild(canvas);
                 }
 
+                // Event standar drag untuk laptop
                 piece.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/id', e.target.id);
+                });
+
+                // FITUR TAP-TO-PLACE KHUSUS HP (KLIK PADA KEPINGAN)
+                piece.addEventListener('click', (e) => {
+                    if (window.innerWidth < 768) {
+                        e.stopPropagation();
+                        // Reset border kepingan lain yang tadinya dipilih
+                        document.querySelectorAll('.puzzle-piece').forEach(p => p.style.border = 'none');
+                        
+                        activeSelectedPiece = piece;
+                        piece.style.border = '3px solid #ffb703'; // Penanda visual kalau kepingan ini sedang dipilih
+                    }
                 });
 
                 piecesArray.push(piece);
@@ -229,6 +258,15 @@ function initGame() {
             const pieceId = e.dataTransfer.getData('text/id');
             const piece = document.getElementById(pieceId);
             piecesArea.appendChild(piece);
+        });
+
+        // Bisa kembalikan kepingan ke area bawah jika diklik di HP
+        piecesArea.addEventListener('click', () => {
+            if (window.innerWidth < 768 && activeSelectedPiece) {
+                piecesArea.appendChild(activeSelectedPiece);
+                activeSelectedPiece.style.border = 'none';
+                activeSelectedPiece = null;
+            }
         });
 
         piecesArray.sort(() => Math.random() - 0.5).forEach(p => piecesArea.appendChild(p));
