@@ -204,7 +204,7 @@ button:hover {
 
     .puzzle-piece {
     cursor: grab;
-    /* filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); */
+    filter: drop-shadow(0 1px 1px rgb(255, 255, 255));
     transition: transform 0.1s;
     touch-action: none; /* TAMBAHKAN BARIS INI SUPAYA HP LANGSUNG MERESPONS SENTUHAN TANPA DITAHAN */
 }
