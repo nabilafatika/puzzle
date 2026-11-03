@@ -1,0 +1,178 @@
+* {
+    box-sizing: border-box;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Poppins', sans-serif;
+}
+body {
+    /* background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); */
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    color: #333;
+}
+h1 {
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    margin-bottom: 10px;
+    font-size: 2rem;
+    text-align: center;
+}
+.controls {
+    background: white;
+    padding: 15px 25px;
+    border-radius: 20px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+select, button, input[type="file"] {
+    padding: 10px 15px;
+    font-size: 1rem;
+    border-radius: 12px;
+    border: 2px solid #ddd;
+    outline: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.shape-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.shape-btn {
+    background-color: #e9ecef;
+    color: #495057;
+    border: 2px solid #ced4da;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.shape-btn:hover {
+    background-color: #dee2e6;
+    transform: scale(1.03);
+}
+
+/* Kelas khusus ketika tombol sedang dipilih (aktif) */
+.shape-btn.active {
+    background-color: #ffb703;
+    color: #fff;
+    border-color: #fb8500;
+    box-shadow: 0 4px 8px rgba(251, 133, 0, 0.3);
+}
+
+
+
+button {
+    background-color: #ffb703;
+    color: #fff;
+    border: none;
+    transition: 0.2s;
+}
+button:hover {
+    background-color: #fb8500;
+    transform: scale(1.05);
+}
+.game-container {
+    display: flex;
+    gap: 30px;
+    background: white;
+    padding: 25px;
+    border-radius: 25px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+/* .board {
+    width: 320px;
+    height: 320px;
+    border: 4px dashed #ffb703;
+    border-radius: 15px;
+    display: grid;
+    background: #fffdf9;
+    position: relative;
+} */
+
+.board {
+    width: 320px;
+    height: 320px;
+    border: 4px dashed #ffb703;
+    border-radius: 15px;
+    display: grid;
+    background: #fffdf9;
+    position: relative;
+    overflow: hidden;
+    
+    /* Tambahkan baris di bawah ini untuk menampilkan bayangan gambar utuh (10% transparan) */
+    background-image: var(--bg-preview);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+
+
+.pieces-area {
+    width: 650px;
+    min-height: 450px;
+    max-height: 550px; 
+    overflow-y: auto;  
+    border: 4px dashed #8ecae6;
+    border-radius: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;       
+    padding: 15px;
+    align-content: flex-start;
+    justify-content: center; 
+    background: #f1faee;
+}
+
+
+
+.slot {
+    border: 1px solid #eee;
+    background: rgba(0,0,0,0.02);
+}
+.puzzle-piece {
+    cursor: grab;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+    transition: transform 0.1s;
+}
+.puzzle-piece:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+}
+.win-message {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: white;
+    font-size: 3rem;
+    z-index: 99;
+    text-align: center;
+}
+.win-message span {
+    font-size: 1.5rem;
+    margin-top: 15px;
+    background: #ffb703;
+    padding: 10px 20px;
+    border-radius: 15px;
+    cursor: pointer;
+}

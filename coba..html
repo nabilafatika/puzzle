@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Puzzle Ceria - Anak TK</title>
+    <!-- CSS untuk mempercantik tampilan -->
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Poppins', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        h1 {
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+            font-size: 2rem;
+            text-align: center;
+        }
+        .controls {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        select, button, input[type="file"] {
+            padding: 10px 15px;
+            font-size: 1rem;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            outline: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button {
+            background-color: #ffb703;
+            color: #fff;
+            border: none;
+            transition: 0.2s;
+        }
+        button:hover {
+            background-color: #fb8500;
+            transform: scale(1.05);
+        }
+        .game-container {
+            display: flex;
+            gap: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .board {
+            width: 320px;
+            height: 320px;
+            border: 4px dashed #ffb703;
+            border-radius: 15px;
+            display: grid;
+            background: #fffdf9;
+            position: relative;
+        }
+        .pieces-area {
+            width: 320px;
+            min-height: 320px;
+            border: 4px dashed #8ecae6;
+            border-radius: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+            align-content: flex-start;
+            background: #f1faee;
+        }
+        .slot {
+            border: 1px solid #eee;
+            background: rgba(0,0,0,0.02);
+        }
+        .puzzle-piece {
+            width: 100px;
+            height: 100px;
+            cursor: grab;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+        .puzzle-piece:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+        .win-message {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            font-size: 3rem;
+            z-index: 99;
+            text-align: center;
+        }
+        .win-message span {
+            font-size: 1.5rem;
+            margin-top: 15px;
+            background: #ffb703;
+            padding: 10px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Audio Tepuk Tangan Saat Menang -->
+    <audio id="winSound" src="applause.mp3"></audio>
+
+    <h1>🧩 Puzzle Ceria Anak TK 🌟</h1>
+
+    <div class="controls">
+        <label>Pilih Gambar:</label>
+        <select id="imageSelect">
+            <option value="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400">🐶 Anjing Lucu</option>
+            <option value="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400">🐱 Kucing Imut</option>
+            <option value="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400">🍎 Apel Segar</option>
+        </select>
+        
+        <label>Atau Upload Foto:</label>
+        <input type="file" id="uploadImage" accept="image/*">
+
+        <label>Level:</label>
+        <select id="gridSize">
+            <option value="2">Mudah (2x2 = 4 Keping)</option>
+            <option value="3" selected>Sedang (3x3 = 9 Keping)</option>
+        </select>
+        <button id="restartBtn">🔄 Acak Ulang</button>
+    </div>
+
+    <div class="game-container">
+        <div>
+            <h3 style="text-align:center; margin-top:0;">Tempat Menyusun</h3>
+            <div id="board" class="board"></div>
+        </div>
+        <div>
+            <h3 style="text-align:center; margin-top:0;">Kepingan Puzzle</h3>
+            <!-- Area kepingan kini bisa menerima drag & drop kembali -->
+            <div id="piecesArea" class="pieces-area"></div>
+        </div>
+    </div>
+
+    <div id="winPopup" class="win-message">
+        🎉 YAY! BERHASIL! 🎉
+        <span onclick="resetGame()">Main Lagi 🚀</span>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        const board = document.getElementById('board');
+        const piecesArea = document.getElementById('piecesArea');
+        const imageSelect = document.getElementById('imageSelect');
+        const uploadImage = document.getElementById('uploadImage');
+        const gridSizeSelect = document.getElementById('gridSize');
+        const restartBtn = document.getElementById('restartBtn');
+        const winPopup = document.getElementById('winPopup');
+
+        let currentImageSrc = imageSelect.value;
+        let gridSize = parseInt(gridSizeSelect.value);
+        let pieceSize = 320 / gridSize;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (type === 'win') {
+                const winSound = document.getElementById('winSound');
+                winSound.currentTime = 0;
+                winSound.play().catch(err => console.log("Audio play blocked:", err));
+                return;
+            }
+
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function initGame() {
+            board.innerHTML = '';
+            piecesArea.innerHTML = '';
+            winPopup.style.display = 'none';
+            gridSize = parseInt(gridSizeSelect.value);
+            pieceSize = 320 / gridSize;
+
+            board.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            board.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+
+            let piecesArray = [];
+
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'slot';
+                    slot.dataset.row = r;
+                    slot.dataset.col = c;
+                    slot.style.width = `${pieceSize}px`;
+                    slot.style.height = `${pieceSize}px`;
+                    
+                    slot.addEventListener('dragover', (e) => e.preventDefault());
+                    slot.addEventListener('drop', dropPiece);
+                    board.appendChild(slot);
+
+                    const piece = document.createElement('div');
+                    piece.className = 'puzzle-piece';
+                    piece.draggable = true;
+                    piece.style.width = `${pieceSize}px`;
+                    piece.style.height = `${pieceSize}px`;
+                    piece.style.backgroundImage = `url(${currentImageSrc})`;
+                    piece.style.backgroundSize = `320px 320px`;
+                    piece.style.backgroundPosition = `-${c * pieceSize}px -${r * pieceSize}px`;
+                    piece.dataset.correctRow = r;
+                    piece.dataset.correctCol = c;
+                    piece.id = `piece-${r}-${c}`;
+
+                    piece.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/id', e.target.id);
+                    });
+
+                    piecesArray.push(piece);
+                }
+            }
+
+            // Izinkan piecesArea menerima kepingan yang ditarik balik
+            piecesArea.addEventListener('dragover', (e) => e.preventDefault());
+            piecesArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const pieceId = e.dataTransfer.getData('text/id');
+                const piece = document.getElementById(pieceId);
+                piecesArea.appendChild(piece);
+            });
+
+            piecesArray.sort(() => Math.random() - 0.5).forEach(p => piecesArea.appendChild(p));
+        }
+
+        function dropPiece(e) {
+            e.preventDefault();
+            const pieceId = e.dataTransfer.getData('text/id');
+            const piece = document.getElementById(pieceId);
+
+            // Jika slot kosong, masukkan kepingan
+            if (this.children.length === 0) {
+                this.appendChild(piece);
+                playSound('snap');
+                checkWin();
+            }
+        }
+
+        function checkWin() {
+            const slots = document.querySelectorAll('.slot');
+            let win = true;
+            slots.forEach(slot => {
+                if (slot.children.length === 0) {
+                    win = false;
+                } else {
+                    const p = slot.children[0];
+                    if (slot.dataset.row != p.dataset.correctRow || slot.dataset.col != p.dataset.correctCol) {
+                        win = false;
+                    }
+                }
+            });
+
+            if (win) {
+                playSound('win');
+                winPopup.style.display = 'flex';
+            }
+        }
+
+        function resetGame() {
+            const winSound = document.getElementById('winSound');
+            winSound.pause();
+            winSound.currentTime = 0;
+            initGame();
+        }
+
+        imageSelect.addEventListener('change', (e) => {
+            currentImageSrc = e.target.value;
+            initGame();
+        });
+
+        uploadImage.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    currentImageSrc = event.target.result;
+                    initGame();
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        gridSizeSelect.addEventListener('change', initGame);
+        restartBtn.addEventListener('click', initGame);
+
+        initGame();
+    </script>
+</body>
+</html>
