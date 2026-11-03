@@ -308,13 +308,47 @@ uploadImage.addEventListener('change', (e) => {
 });
 
 // ==========================================
-// PENGAKTIF DRAG AND DROP HALUS KHUSUS LAYAR HP (TOUCH)
+// TAMBAHAN TOUCH HANDLER AGAR DI HP BISA LANGSUNG DISERET TANPA TAHAN LAMA
 // ==========================================
 document.addEventListener('touchstart', function(e) {
-    if (e.target.classList.contains('puzzle-piece')) {
-        // Membantu mencegah perilaku scroll default saat menyentuh kepingan puzzle
+    if (window.innerWidth < 768 && e.target.closest('.puzzle-piece')) {
+        const piece = e.target.closest('.puzzle-piece');
+        piece.dataset.touching = "true";
     }
 }, { passive: true });
+
+document.addEventListener('touchmove', function(e) {
+    // Mencegah layar ikut ke-scroll (tarik-tarik halaman) saat sedang menyeret kepingan puzzle
+    if (window.innerWidth < 768) {
+        const draggingPiece = document.querySelector('.puzzle-piece[data-touching="true"]');
+        if (draggingPiece) {
+            e.preventDefault(); 
+        }
+    }
+}, { passive: false });
+
+document.addEventListener('touchend', function(e) {
+    if (window.innerWidth < 768) {
+        const draggingPiece = document.querySelector('.puzzle-piece[data-touching="true"]');
+        if (draggingPiece) {
+            draggingPiece.removeAttribute('data-touching');
+            
+            // Mencari elemen kotak/slot yang sedang disentuh di bawah jari saat dilepas
+            const touch = e.changedTouches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const targetSlot = elementBelow ? elementBelow.closest('.slot') : null;
+            
+            if (targetSlot) {
+                const existingPiece = Array.from(targetSlot.children).find(child => child.classList.contains('puzzle-piece'));
+                if (!existingPiece) {
+                    targetSlot.appendChild(draggingPiece);
+                    playSound('snap');
+                    checkWin();
+                }
+            }
+        }
+    }
+});
 
 gridSizeSelect.addEventListener('change', initGame);
 restartBtn.addEventListener('click', initGame);
