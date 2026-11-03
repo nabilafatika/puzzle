@@ -10,7 +10,7 @@ const winPopup = document.getElementById('winPopup');
 
 let currentImageSrc = imageSelect.value;
 let gridSize = parseInt(gridSizeSelect.value);
-let boardSize = 320; 
+let boardSize = window.innerWidth < 768 ? 280 : 320; 
 let pieceSize = boardSize / gridSize;
 let selectedShape = 'square'; // Variabel status bentuk default
 
